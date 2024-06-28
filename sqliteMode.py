@@ -40,13 +40,13 @@ def CreateTable(table_name):
             columns = 'id TEXT, typeofmembers TEXT, tripsdates TEXT, tripstimes TEXT, pointa TEXT, pointb TEXT, id_trip TEXT, number_of_passengers TEXT, status TEXT'
         case 'transactions':
             print("start CreateTable transactions")
-            columns = 'id TEXT PRIMARY KEY, user_id, summ TEXT, date_time TEXT, type_of_transaction TEXT'
+            columns = 'transaction_id TEXT PRIMARY KEY, user_id, summ TEXT, date_time TEXT, type_of_transaction TEXT'
         case 'drivers':
             print("start CreateTable drivers")
             columns = 'user_id TEXT, brand TEXT, colour TEXT, numbcar TEXT, car_id TEXT'
         case 'balance':
             print("start CreateTable balance")
-            columns = 'id TEXT PRIMARY KEY, user_id TEXT, summ TEXT'
+            columns = 'balance_id TEXT PRIMARY KEY, user_id TEXT, summ TEXT'
         case 'agreedTrips':
             print("start CreateTable agreedTrips")
             columns = 'id_trip TEXT, tripsdates TEXT, tripstimes TEXT, pointa TEXT, pointb TEXT, number_of_passengers TEXT, id_driver TEXT, id_passenger TEXT, status TEXT, ids_trips TEXT, maximum_number_of_passengers TEXT'
@@ -123,6 +123,21 @@ def SelectAllData(T, C, V, S="*"):
                 for row in data
             ][i]
             for i in range(len(data))
+        ]
+        return newList
+    except Exception as e:
+        return []
+
+#FUNCTIONS FOR ADMIN
+    
+def SelectAllDataForAdmin(T, S="*"):
+    """Sending an array of data from a database"""
+    try:
+        cur.execute(f'SELECT {S} FROM {T}')
+        data = cur.fetchall()
+        newList = [
+            dict(zip([key[0] for key in cur.description], row))
+            for row in data
         ]
         return newList
     except Exception as e:
