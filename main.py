@@ -41,75 +41,26 @@ def registrations():
     """route for  register users"""
     try:
         idUser = GenerateAlfNumStr(10)
+        idBalance = GenerateAlfNumStr(10)
         INNSI = f'"{idUser}", "{request.json["name"]}", "{request.json["numb"]}", "{request.json["id_tg"]}", "{request.json["surname"]}"'
         check = InsertData(T="users", V=INNSI)
         con.commit()
-        if len(check) > 1:
+        try:
+            startBalanceData = f'"{idBalance}", "{idUser}", "{float(500)}" '
+            startBalance = InsertData(T="balance", V = startBalanceData)
+            con.commit()
+        except:
+            return jsonify({"action": "error3Data"})
+        if len(check) > 1 and len(startBalance)>1:
             return jsonify({"action": "success", "id": idUser})
         else:
-            return jsonify({"action": "errorData"})
+            return jsonify({"action": "error2Data"})
     except Exception as e:
-        return jsonify({"action": "errorData"})
+        return jsonify({"action": "error1Data"})
 
 
-@app.route('/balance/getusers', methods=['POST'])
-def getUsersBalance():
-    """route for getting users balance"""
-    try:
-        user_id = request.json['user_id']
-        user_balance = SelectData("balance", "user_id", user_id, "summ" )["summ"]
-
-        return jsonify({"action": "success", "balance": user_balance})
-    except Exception as e:
-        return jsonify({"action": "errorData"})
 
 
-@app.route('/balance/spending', methods=['POST'])
-def SpendTheBalance():
-    """route for spending users balance"""
-    try:
-        user_id = request.json['user_id']
-        deduction = request.json['deduction']
-
-        user_balance = SelectData("balance", "user_id", user_id, "summ" )["summ"]
-
-        user_balance -= deduction
-
-        UpdateData("balance", "summ", user_balance, "user_id", user_id)
-        #create a transaction
-        current_datetime = str(datetime.now())
-        transaction_id = GenerateAlfNumStr(10)
-        transaction_data = f'"{transaction_id}", "{user_id}", "{deduction}", "{current_datetime}", "purchase" '
-        InsertData("transactions", transaction_data)
-
-        return jsonify({"action": "success", "balance": user_balance})
-    except Exception as e:
-        return jsonify({"action": "errorData"})
-
-
-@app.route('/balance/recharging', methods=['POST'])
-def RechargeTheBalance():
-    """route for recharging users balance"""
-    try:
-        credit = request.json['credit']
-        user_id = request.json['user_id']
-        user_balance = SelectData("balance", "user_id", user_id, "summ" )["summ"]
-
-        user_balance += credit
-
-        UpdateData("balance", "summ", user_balance, "user_id", user_id)
-
-        #create a transaction
-        current_datetime = str(datetime.now())
-        transaction_id = GenerateAlfNumStr(10)
-        transaction_data = f'"{transaction_id}", "{user_id}", "{credit}", "{current_datetime}", "deposit" '
-        InsertData("transactions", transaction_data)
-
-        return jsonify({"action": "success", "balance": user_balance})
-    except Exception as e:
-        return jsonify({"action": "errorData"})
-
-        
 # Working with consent
 @app.route('/consent/save_response', methods=['POST'])
 def saveUserConsent():
@@ -129,9 +80,11 @@ def saveUserConsent():
 
         id_agreement = GenerateAlfNumStr(7)
         user_tg_id = request.json["user_tg_id"]
+        user_tg_id = request.json["user_tg_id"]
         response = request.json["response"]
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         # Example of inserting data into your database (modify as per your database structure):
+        status = InsertData("agreement", f'"{id_agreement}","{user_tg_id}", "{response}", "{timestamp}"')
         status = InsertData("agreement", f'"{id_agreement}","{user_tg_id}", "{response}", "{timestamp}"')
 
         if len(status) > 0:
@@ -160,7 +113,9 @@ def getUserConsent():
         """
         try:
             user_tg_id = request.json["user_tg_id"]
+
             # Example of retrieving data from your database (modify as per your database structure):
+            response_data = SelectData(T="agreement", C= "user_tg_id", V= user_tg_id)
             response_data = SelectData(T="agreement", C= "user_tg_id", V= user_tg_id)
             if response_data:
                 response = response_data["response"]
@@ -211,6 +166,7 @@ def getTrips():
         return jsonify({"action": "success", "data": data})
     except Exception as e:
         return jsonify({"action": "errorData"})
+    
 
 
 @app.route('/gettrips/trips/Trips', methods=['POST'])
@@ -344,6 +300,18 @@ def updateTripStatus():
         return jsonify({"action": "error"})
     except Exception as e:
         return jsonify({"action": f"errorData {e}"})
+    
+# ROUTES FOR ADMIN
+
+@app.route('/admin/gettrips/trips', methods=['GET'])
+def getAllTrips():
+    """route for checking for suitable trips"""
+    try:
+        data = SelectAllDataForAdmin("trips")
+        return jsonify({"action": "success", "data": data})
+    except Exception as e:
+        ##print(traceback.format_exc())
+        return jsonify({"action": "errorData"})
 
 
 if __name__ == '__main__':
