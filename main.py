@@ -411,6 +411,9 @@ def updateTripStatus():
         return jsonify({"action": f"errorData {e}"})
 
 
+
+
+
 # ----------------- admin -----------------
 @app.route('/admin/get_by_number', methods=['POST'])
 def AdminGetByNumber():
@@ -429,6 +432,16 @@ def AdminGetByNumber():
                 return jsonify({"action": "errorData", "data": "error"})
         except Exception as e:
             return jsonify({"action": "errorData"})
+          
+          
+          
+@app.route('/gettrips/getTripsByDirection', methods=['GET'])
+def get_trips_by_direction():
+    try:
+        data = SelectAllData("trips", "direction_name", f'{request.json["direction_name"]}')
+        return jsonify({"action": "success", "data": data})
+    except Exception as e:
+        return jsonify({"action": "errorData"})
 
 
 
